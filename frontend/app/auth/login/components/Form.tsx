@@ -7,7 +7,12 @@ import Button from "@/components/Button";
 import { token } from "@/utils/Tokenize";
 import { useTransitionRouter } from "next-view-transitions";
 import Link from "next/link";
+import { stat } from "fs";
 import { setCookie } from "@/utils/Cookies";
+import users from "@/utils/users";
+
+// Allowed UUIDs
+const allowedUsernames = new Set(users);
 
 export default function Form() {
 	const router = useTransitionRouter();
@@ -18,7 +23,16 @@ export default function Form() {
 	const [statusMessage, setMessage] = useState("");
 
 	const handleLogin = useCallback(async (account: string, password: string) => {
+		// Ensure UID is in allowed list
+		if (!allowedUsernames.has(account)) {
+			setStatus(-2);
+			setMessage("FUCK OFF!");
+			return;
+		}
+
 		setStatus(1);
+		console.log(token());
+
 		const login = await fetch(`${rotateUrl()}/login`, {
 			method: "POST",
 			headers: {
@@ -34,6 +48,7 @@ export default function Form() {
 		if (!login.ok) {
 			setStatus(-1);
 			setMessage("Server down.");
+			return;
 		}
 
 		const loginResponse = await login.json();
@@ -53,7 +68,7 @@ export default function Form() {
 			setStatus(-1);
 			if (loginResponse.message?.includes("Digest"))
 				setMessage(
-					"Seems like this is your first time. Go to academia.srmist.edu.in and setup password!",
+					"Seems like this is your first time. Go to academia.srmist.edu.in and setup password!"
 				);
 			else setMessage(loginResponse?.message);
 		}
@@ -72,6 +87,15 @@ export default function Form() {
 					{statusMessage?.replace(">_", "")}
 				</p>
 			)}
+
+			{
+				status === -2 && (
+					<p className="rounded-2xl bg-light-error-background px-4 py-2 text-light-error-color dark:bg-dark-error-background dark:text-dark-error-color">
+					{statusMessage.includes(">_") ? "" : ""}
+					{statusMessage.replace(">_", "")}
+				</p>
+				)
+			}
 
 			{status === 2 && statusMessage && (
 				<p className="rounded-2xl bg-light-success-background px-4 py-2 text-light-success-color dark:bg-dark-success-background dark:text-dark-success-color">
