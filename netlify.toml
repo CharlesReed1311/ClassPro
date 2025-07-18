@@ -9,7 +9,7 @@
 [dev]
   command = "cd frontend && bun run dev"
   port = 3000
-  targetPort = 0243
+  targetPort = 3000
 
 [[redirects]]
   from = "/elab"
