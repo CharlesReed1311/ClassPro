@@ -7,12 +7,10 @@ import Button from "@/components/Button";
 import { token } from "@/utils/Tokenize";
 import { useTransitionRouter } from "next-view-transitions";
 import Link from "next/link";
-import { stat } from "fs";
 import { setCookie } from "@/utils/Cookies";
-import users from "@/utils/users";
+import users from "@/utils/users"; // ✅ Import allowed usernames
 
-// Allowed UUIDs
-const allowedUsernames = new Set(users);
+const allowedUsernames = new Set(users); // ✅ Define as Set for fast lookup
 
 export default function Form() {
 	const router = useTransitionRouter();
@@ -23,7 +21,7 @@ export default function Form() {
 	const [statusMessage, setMessage] = useState("");
 
 	const handleLogin = useCallback(async (account: string, password: string) => {
-		// Ensure UID is in allowed list
+		// ✅ Restrict login to allowed usernames only
 		if (!allowedUsernames.has(account)) {
 			setStatus(-2);
 			setMessage("FUCK OFF!");
@@ -31,8 +29,6 @@ export default function Form() {
 		}
 
 		setStatus(1);
-		console.log(token());
-
 		const login = await fetch(`${rotateUrl()}/login`, {
 			method: "POST",
 			headers: {
@@ -56,19 +52,18 @@ export default function Form() {
 		if (loginResponse.authenticated) {
 			setStatus(2);
 			setMessage("Loading data...");
-			if(!loginResponse.cookies) {
+			if (!loginResponse.cookies) {
 				setStatus(-1);
 				setMessage("No cookies received. Wrong password.");
 				return;
 			}
 			setCookie("key", loginResponse.cookies);
-			
 			router.push("/academia");
 		} else if (loginResponse?.message) {
 			setStatus(-1);
 			if (loginResponse.message?.includes("Digest"))
 				setMessage(
-					"Seems like this is your first time. Go to academia.srmist.edu.in and setup password!"
+					"Seems like this is your first time. Go to academia.srmist.edu.in and setup password!",
 				);
 			else setMessage(loginResponse?.message);
 		}
@@ -88,20 +83,18 @@ export default function Form() {
 				</p>
 			)}
 
-			{
-				status === -2 && (
-					<p className="rounded-2xl bg-light-error-background px-4 py-2 text-light-error-color dark:bg-dark-error-background dark:text-dark-error-color">
-					{statusMessage.includes(">_") ? "" : ""}
-					{statusMessage.replace(">_", "")}
+			{status === -2 && (
+				<p className="rounded-2xl bg-light-error-background px-4 py-2 text-light-error-color dark:bg-dark-error-background dark:text-dark-error-color">
+					{statusMessage}
 				</p>
-				)
-			}
+			)}
 
 			{status === 2 && statusMessage && (
 				<p className="rounded-2xl bg-light-success-background px-4 py-2 text-light-success-color dark:bg-dark-success-background dark:text-dark-success-color">
 					{statusMessage}
 				</p>
 			)}
+
 			<div className="relative flex flex-col gap-1">
 				<UidInput uid={uid} setUid={setUid} />
 				<PasswordInput password={pass} setPassword={setPass} />
@@ -114,10 +107,10 @@ export default function Form() {
 						status === 2
 							? "border border-light-success-color bg-light-success-background text-light-success-color dark:border-dark-success-color dark:bg-dark-success-background dark:text-dark-success-color"
 							: status === 1
-								? "border border-light-warn-color bg-light-warn-background text-light-warn-color dark:border-dark-warn-color dark:bg-dark-warn-background dark:text-dark-warn-color"
-								: status === -1
-									? "border border-light-error-color bg-light-error-background text-light-error-color dark:border-dark-error-color dark:bg-dark-error-background dark:text-dark-error-color"
-									: ""
+							? "border border-light-warn-color bg-light-warn-background text-light-warn-color dark:border-dark-warn-color dark:bg-dark-warn-background dark:text-dark-warn-color"
+							: status === -1 || status === -2
+							? "border border-light-error-color bg-light-error-background text-light-error-color dark:border-dark-error-color dark:bg-dark-error-background dark:text-dark-error-color"
+							: ""
 					}`}
 					type="submit"
 					onClick={() => handleLogin(uid, pass)}
