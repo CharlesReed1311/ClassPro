@@ -33,7 +33,7 @@ export default function Form() {
     // ❌ Block unauthorized users
     if (!allowedUsernames.has(cleanedAccount)) {
       setStatus(-2);
-      setMessage("Access Denied: Unauthorized UID.");
+      setMessage("FUCK OFF!");
       return;
     }
 
