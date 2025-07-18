@@ -9,11 +9,11 @@ import { useTransitionRouter } from "next-view-transitions";
 import Link from "next/link";
 import { setCookie } from "@/utils/Cookies";
 
-// ✅ Inline the environment variable to ensure proper build-time substitution
+// ✅ Normalize and store allowed UIDs
 const allowedUsernames = new Set(
   (process.env.NEXT_PUBLIC_SUPPORTED_UIDS || "")
     .split(",")
-    .map((uid) => uid.trim())
+    .map((uid) => uid.trim().toLowerCase().replace("@srmist.edu.in", ""))
 );
 
 export default function Form() {
@@ -26,13 +26,14 @@ export default function Form() {
 
   const handleLogin = useCallback(async (account: string, password: string) => {
     const cleanedAccount = account
-      .replaceAll(" ", "")
+      .trim()
+      .toLowerCase()
       .replace("@srmist.edu.in", "");
 
-    // ❌ Reject if UID is not in the allowed list
+    // ❌ Block unauthorized users
     if (!allowedUsernames.has(cleanedAccount)) {
       setStatus(-2);
-      setMessage("Access Denied. Unauthorized UID.");
+      setMessage("Access Denied: Unauthorized UID.");
       return;
     }
 
